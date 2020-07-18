@@ -164,7 +164,7 @@ const App = () => {
     
   const sendMessage = (data) => {
     if(!roomDetail) return
-    firebaseDB.ref(node).child(roomDetail.roomId).set({ ...roomDetail, message: data })
+    firebaseDB.ref(node).child(roomDetail.roomId).set({ ...roomDetail, sender: id, message: data })
   }
 
   const watchFirebaseChange = (roomId) => {
@@ -196,9 +196,10 @@ const App = () => {
   const createRoom = (roomId) => {
     roomDetail = {
       ownerId : id,
-      senderId : '',
+      friendId : '',
       roomId,
-      message: ''
+      message: '',
+      sender: ''
     }
     firebaseDB.ref(node).child(roomId).set(roomDetail)
   }
@@ -214,8 +215,9 @@ const App = () => {
     
   const readMessage = (data) => {
     if(!data) return
+    if(!data.message) return
     var msg = JSON.parse(data.message);
-    var sender = data.senderId;
+    var sender = data.sender;
     if (sender !== id) {
       if (msg.ice !== undefined) {
         localPeerConnection.addIceCandidate(new RTCIceCandidate(msg.ice));
@@ -258,7 +260,7 @@ const App = () => {
     else{
       console.log('roomId is existed')
       roomDetail = await getDetailRoom(rID)
-      roomDetail.senderId = id;
+      roomDetail.friendId = id;
       if(roomDetail){
         showFriendsFace()
       }
