@@ -231,31 +231,51 @@ const App = () => {
         console.log('-- add ice candidate')
         localPeerConnection.addIceCandidate(new RTCIceCandidate(msg.ice));
       }
-      else if (msg.sdp.type === "offer") {
-        // var r = confirm("Answer call?");
-        // if (r == true) {
-        console.log('read message offer')
-        localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp))
-          .then(() => localPeerConnection.createAnswer())
-          .then(answer => localPeerConnection.setLocalDescription(answer))
-          .then(() => {
-            roomDetail.friendId = data.friendId
-            sendMessage(JSON.stringify({'sdp': localPeerConnection.localDescription}))
-          })
-          .catch(error => {
-            console.error( error);
-          });
-        // } else {
-        //   alert("Rejected the call");
-        // }
-      }
-      else if (msg.sdp.type === "answer") {
-        console.log('read message answer')
-        localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp))
-        .catch(error => {
-          console.error( error);
-        });
-      }
+      else{
+        if(msg.sdp){
+          if (msg.sdp.type === "offer") {
+            // var r = confirm("Answer call?");
+            // if (r == true) {
+            console.log('read message offer')
+            localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp))
+              .then(() => localPeerConnection.createAnswer())
+              .then(answer => localPeerConnection.setLocalDescription(answer))
+              .then(() => {
+                roomDetail.friendId = data.friendId
+                sendMessage(JSON.stringify({'sdp': localPeerConnection.localDescription}))
+              })
+              .catch(error => {
+                console.error( error);
+              });
+            // } else {
+            //   alert("Rejected the call");
+            // }
+          }
+          else if (msg.sdp.type === "answer") {
+            console.log('read message answer')
+            localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp))
+            .catch(error => {
+              console.error( error);
+            });
+          }
+        }
+        else if(msg.action){
+          if (msg.action === "leave room") {
+            console.log('leave room')
+            localVideo.style.zIndex = 1;
+            localVideo.style.width = '100%'
+            localVideo.style.border = 'none'
+
+            remoteVideo.style.zIndex = 0;
+            remoteVideo.srcObject = null
+            remoteStream = null
+          }
+          else if (msg.action === "remove room") {
+            console.log('remove room')
+            hangupAction()
+          }
+        }
+      } 
     }
   };
 
