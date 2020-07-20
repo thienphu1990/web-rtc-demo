@@ -222,6 +222,7 @@ const App = () => {
   }
 
   const leaveRoom = (roomId) => {
+    stopWatchFirebaseChange(roomId)
     roomDetail.friendId = ''
     sendMessage(JSON.stringify({action: 'leave room'}))
   }
