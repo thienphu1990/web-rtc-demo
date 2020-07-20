@@ -121,6 +121,7 @@ const id = uid(10)
 console.log(id)
 var partnerId = null
 var roomDetail = null
+var isWatchingFirebase = false
 
 const App = () => {
   useEffect(() => {
@@ -169,8 +170,11 @@ const App = () => {
 
   const watchFirebaseChange = (roomId) => {
     firebaseDB.ref(node).child(roomId).on('value',(snapshot)=>{
+      if(!isWatchingFirebase){
+        isWatchingFirebase = true
+        console.log('----- Start watching firebase -----')
+      }
       let val = snapshot.val()
-      console.log(val)
       readMessage(val)
     })
   }
@@ -178,7 +182,7 @@ const App = () => {
   const checkExistedRoomId = (roomId) => {
     return new Promise(promise => {
       firebaseDB.ref(node).child(roomId).once('value',(snapshot)=>{
-        console.log(snapshot.exists())
+        console.log('is existed room: ',snapshot.exists())
         promise(snapshot.exists())
       })
     })
@@ -187,7 +191,7 @@ const App = () => {
   const getDetailRoom = (roomId) => {
     return new Promise(promise => {
       firebaseDB.ref(node).child(roomId).once('value',(snapshot)=>{
-        console.log(snapshot.val())
+        console.log('detail room: ',snapshot.val())
         promise(snapshot.val())
       })
     })
@@ -222,6 +226,7 @@ const App = () => {
     var sender = data.sender;
     if (sender !== id) {
       if (msg.ice !== undefined) {
+        console.log('add ice candidate')
         localPeerConnection.addIceCandidate(new RTCIceCandidate(msg.ice));
       }
       else if (msg.sdp.type === "offer") {
@@ -244,7 +249,6 @@ const App = () => {
       }
       else if (msg.sdp.type === "answer") {
         console.log('read message answer')
-        console.log(localPeerConnection.localDescription)
         localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp))
         .catch(error => {
           console.error( error);
