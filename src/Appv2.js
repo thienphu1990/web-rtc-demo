@@ -326,9 +326,10 @@ const App = () => {
     else{
       leaveRoom(roomDetail.roomId)
     }
-    localPeerConnection.close();
-    localPeerConnection = null;
-
+    if(localPeerConnection){
+      localPeerConnection.close();
+      localPeerConnection = null;
+    }
     localVideo.style.zIndex = 1;
     localVideo.style.width = '100%'
     localVideo.style.border = 'none'
