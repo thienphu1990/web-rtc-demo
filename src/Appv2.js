@@ -199,7 +199,7 @@ const App = () => {
       friendId : '',
       roomId,
       message: '',
-      sender: ''
+      sender: id 
     }
     firebaseDB.ref(node).child(roomId).set(roomDetail)
   }
@@ -216,7 +216,9 @@ const App = () => {
   const readMessage = (data) => {
     if(!data) return
     if(!data.message) return
+    
     var msg = JSON.parse(data.message);
+    console.log(data)
     var sender = data.sender;
     if (sender !== id) {
       if (msg.ice !== undefined) {
@@ -229,7 +231,10 @@ const App = () => {
         localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp))
           .then(() => localPeerConnection.createAnswer())
           .then(answer => localPeerConnection.setLocalDescription(answer))
-          .then(() => sendMessage(JSON.stringify({'sdp': localPeerConnection.localDescription})))
+          .then(() => {
+            roomDetail.friendId = data.friendId
+            sendMessage(JSON.stringify({'sdp': localPeerConnection.localDescription}))
+          })
           .catch(error => {
             console.error( error);
           });
@@ -256,9 +261,11 @@ const App = () => {
     let isExisted = await checkExistedRoomId(rID)
     if(!isExisted){
       createRoom(rID)
+      watchFirebaseChange(rID)
     }
     else{
       console.log('roomId is existed')
+      watchFirebaseChange(rID)
       roomDetail = await getDetailRoom(rID)
       roomDetail.friendId = id;
       if(roomDetail){
@@ -267,7 +274,6 @@ const App = () => {
     }
     setIsStart(true)
     showMyFace()
-    watchFirebaseChange(rID)
   }
 
   const callAction = () => {
