@@ -130,9 +130,6 @@ const App = () => {
     // callButton = document.getElementById('call')
     randomButton = document.getElementById('random')
     hangupButton = document.getElementById('hangup');
-
-    inputRoomId = document.getElementById('input-id')
-  
     // event
     
 
@@ -297,8 +294,10 @@ const App = () => {
     localPeerConnection = new RTCPeerConnection(servers);
     localPeerConnection.addEventListener('icecandidate', handleConnection);
     localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
+    inputRoomId = document.getElementById('input-id')
     if(!inputRoomId) return
     let rID = inputRoomId.value
+    console.log(rID)
     let isExisted = await checkExistedRoomId(rID)
     if(!isExisted){
       createRoom(rID)
@@ -346,6 +345,7 @@ const App = () => {
   }
 
   const randomAction = () => {
+    inputRoomId = document.getElementById('input-id')
     if(!inputRoomId) return 
     let randomId = Math.floor(Math.random()*1000000000)
     inputRoomId.value = randomId
@@ -368,6 +368,7 @@ const App = () => {
   }
 
   const _onChangeRoomId = (e) => {
+    inputRoomId = document.getElementById('input-id')
     let val = inputRoomId.value
     if(val && val.length > 0){
       setIsShowStartBtn(true)
