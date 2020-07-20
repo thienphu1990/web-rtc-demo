@@ -120,6 +120,7 @@ console.log(id)
 var partnerId = null
 var roomDetail = null
 var isWatchingFirebase = false
+var listener = null;
 
 const App = () => {
   useEffect(() => {
@@ -168,7 +169,7 @@ const App = () => {
   }
 
   const watchFirebaseChange = (roomId) => {
-    firebaseDB.ref(node).child(roomId).on('value',(snapshot)=>{
+    listener = firebaseDB.ref(node).child(roomId).on('value',(snapshot)=>{
       if(!isWatchingFirebase){
         isWatchingFirebase = true
         console.log('----- Start watching firebase -----')
@@ -176,6 +177,12 @@ const App = () => {
       let val = snapshot.val()
       readMessage(val)
     })
+  }
+
+  const stopWatchFirebaseChange = (roomId) => {
+    if(listener){
+        firebaseDB.ref(node).child(roomId).off('value', listener)
+    }
   }
 
   const checkExistedRoomId = (roomId) => {
@@ -208,7 +215,8 @@ const App = () => {
   }
 
   const removeRoom = (roomId) => {
-    // firebaseDB.ref(node).child(roomId).remove()
+    stopWatchFirebaseChange(roomId)
+    firebaseDB.ref(node).child(roomId).remove()
     roomDetail.ownerId = ''
     sendMessage(JSON.stringify({action: 'remove room'}))
   }
@@ -261,16 +269,19 @@ const App = () => {
         else if(msg.action){
           if (msg.action === "leave room") {
             console.log('leave room')
-            localVideo.style.zIndex = 1;
-            localVideo.style.width = '100%'
-            localVideo.style.border = 'none'
+            sendMessage(JSON.stringify({action: ''}))
+            // localVideo.style.zIndex = 1;
+            // localVideo.style.width = '100%'
+            // localVideo.style.border = 'none'
 
-            remoteVideo.style.zIndex = 0;
-            remoteVideo.srcObject = null
-            remoteStream = null
+            // remoteVideo.style.zIndex = 0;
+            // remoteVideo.srcObject = null
+            // remoteStream = null
+            hangupAction()
           }
           else if (msg.action === "remove room") {
             console.log('remove room')
+            sendMessage(JSON.stringify({action: ''}))
             hangupAction()
           }
         }
