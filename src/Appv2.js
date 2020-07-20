@@ -137,7 +137,7 @@ const App = () => {
     localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
 
     return () => {
-      
+      hangupAction()
     }
   }, [])
 
@@ -211,12 +211,12 @@ const App = () => {
   const removeRoom = (roomId) => {
     // firebaseDB.ref(node).child(roomId).remove()
     roomDetail.ownerId = ''
-    sendMessage({action: 'remove room'})
+    sendMessage(JSON.stringify({action: 'remove room'}))
   }
 
   const leaveRoom = (roomId) => {
     roomDetail.friendId = ''
-    sendMessage({action: 'leave room'})
+    sendMessage(JSON.stringify({action: 'leave room'}))
   }
     
   const readMessage = (data) => {
