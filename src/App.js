@@ -1,8 +1,6 @@
 import React, {useEffect} from 'react';
 import styled from 'styled-components'
 import adapter from 'webrtc-adapter';
-import * as firebase from 'firebase';
-import uid from 'uid'
 
 const Bound = styled.div`
   display: flex;
@@ -12,9 +10,7 @@ const Bound = styled.div`
   .video-container{
     display:flex;
     position: relative;
-    width:50%;
-    left: 50%;
-    transform: translate(-50%, 0);
+    width:70%;
     #local-video{
       /* max-width: 100%; */
       width: 100%;
@@ -69,18 +65,6 @@ const mediaStreamConstraints = {
   audio: true
 }
 
-var fb = firebase.initializeApp({ 
-  apiKey: "AIzaSyB-q7FU6fQQTOShT_UbybVUBOcXHAhTILo",
-  authDomain: "vinpearl-2f7d4.firebaseapp.com",
-  databaseURL: "https://vinpearl-2f7d4.firebaseio.com",
-  projectId: "vinpearl-2f7d4",
-  storageBucket: "vinpearl-2f7d4.appspot.com",
-  messagingSenderId: "904958325116",
-  appId: "1:904958325116:web:e123ec52c8eea170"
-});
-const node = 'vinhome/videocall/web-rtc'
-var firebaseDB = fb.database();
-
 const offerOptions = {
   offerToReceiveVideo: 1,
 }
@@ -99,14 +83,6 @@ let remoteStream;
 
 let localPeerConnection;
 let remotePeerConnection;
-
-const id = uid(10)
-console.log(id)
-
-const servers = {iceServers: [
-  {'urls': 'stun:stun.l.google.com:19302'},
-  {'urls': 'stun:stun.services.mozilla.com'},
-]};
 
 const App = () => {
 
@@ -130,13 +106,6 @@ const App = () => {
       remoteVideo.removeEventListener('onresize', logResizedVideo)
     }
   }, [])
-
-  const watchFirebaseChange = () => {
-    firebaseDB.ref(node+'/web-rtc').on('value',(snapshot)=>{
-      let val = snapshot.val()
-      // readMessage(val)
-    })
-  }
   
   const gotLocalMediaStream = (mediaStream) => {
     if(!localVideo) return
@@ -244,7 +213,6 @@ const App = () => {
     localPeerConnection.setLocalDescription(description)
       .then(() => {
         setLocalDescriptionSuccess(localPeerConnection);
-        // sendMessage(id, JSON.stringify({'sdp': localPeerConnection.localDescription}))
       }).catch(setSessionDescriptionError);
 
     trace('remotePeerConnection setRemoteDescription start.');
@@ -293,8 +261,7 @@ const App = () => {
 
     trace('Starting call.');
     startTime = window.performance.now();
-    // Watch firebase
-    watchFirebaseChange()
+
     // Get local media stream tracks.
     const videoTracks = localStream.getVideoTracks();
     const audioTracks = localStream.getAudioTracks();
@@ -304,6 +271,8 @@ const App = () => {
     if (audioTracks.length > 0) {
       trace(`Using audio device: ${audioTracks[0].label}.`);
     }
+
+    const servers = {host: 'https://web.wee.vn/v1'};  // Allows for RTC server configuration.
 
     // Create peer connections and add behavior.
     localPeerConnection = new RTCPeerConnection(servers);
@@ -361,37 +330,6 @@ const App = () => {
     const now = (window.performance.now() / 1000).toFixed(3);
     console.log(now, text);
   }
-
-  const sendMessage = (senderId, data) => {
-    firebaseDB.ref(node).set({ sender: senderId, message: data })
-  }
-
-  const readMessage = (data) => {
-    if(!data) return
-    var msg = JSON.parse(data.message);
-    var sender = data.sender;
-    if (sender !== id) {
-      if (msg.ice !== undefined) {
-        localPeerConnection.addIceCandidate(new RTCIceCandidate(msg.ice));
-      }
-      else if (msg.sdp.type === "offer") {
-        console.log('read message offer')
-        localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp))
-          .then(() => localPeerConnection.createAnswer())
-          .then(answer => localPeerConnection.setLocalDescription(answer))
-          .then(() => sendMessage(id, JSON.stringify({'sdp': localPeerConnection.localDescription})))
-          .catch(error => {
-            console.error( error);
-          });
-      }
-      else if (msg.sdp.type === "answer") {
-        console.log('read message answer')
-        localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp)).catch(error => {
-          console.error( error);
-        });
-      }
-    }
-  };
   
   return (
     <Bound>

@@ -19,19 +19,17 @@ const Bound = styled.div`
     display:flex;
     position: relative;
     width:50%;
-    #local-video{
+    #local-video, #remote-video{
       position: absolute;
       top: 0; 
       right: 0;
-      /* max-width: 100%; */
       width: 100%;
+      border-radius: 10px;
+    }
+    #local-video{
       z-index:1;
     }
     #remote-video{
-      position: absolute;
-      top: 0;
-      right: 0;
-      /* max-width: 20%; */
       width: 100%;
       z-index: 0;
     }
@@ -160,6 +158,7 @@ const App = () => {
     console.log(mediaStream)
     localVideo.style.zIndex = 2
     localVideo.style.width = '35%'
+    localVideo.style.border = '1px solid #33ADFF'
     remoteVideo.srcObject = mediaStream
     remoteStream = mediaStream
   }
@@ -210,12 +209,14 @@ const App = () => {
   }
 
   const removeRoom = (roomId) => {
-    firebaseDB.ref(node).child(roomId).remove()
+    // firebaseDB.ref(node).child(roomId).remove()
+    roomDetail.ownerId = ''
+    sendMessage({action: 'remove room'})
   }
 
   const leaveRoom = (roomId) => {
-    // firebaseDB.ref(node).child(roomId).update({
-    // })
+    roomDetail.friendId = ''
+    sendMessage({action: 'leave room'})
   }
     
   const readMessage = (data) => {
@@ -292,6 +293,22 @@ const App = () => {
     else{
       leaveRoom(roomDetail.roomId)
     }
+    localPeerConnection.close();
+    localPeerConnection = null;
+
+    localVideo.style.zIndex = 1;
+    localVideo.style.width = '100%'
+    localVideo.style.border = 'none'
+    localVideo.srcObject = null
+    localVideo = null
+
+    remoteVideo.style.zIndex = 0;
+    remoteVideo.srcObject = null
+    remoteStream = null
+    
+    setIsShowStartBtn(true)
+    setIsShowRandomBtn(true)
+    setIsStart(false)
   }
 
   const randomAction = () => {
