@@ -268,7 +268,6 @@ const App = () => {
       watchFirebaseChange(rID)
     }
     else{
-      console.log('roomId is existed')
       watchFirebaseChange(rID)
       roomDetail = await getDetailRoom(rID)
       roomDetail.friendId = id;
