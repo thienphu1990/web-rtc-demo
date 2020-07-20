@@ -222,7 +222,7 @@ const App = () => {
     if(!data.message) return
     
     var msg = JSON.parse(data.message);
-    console.log(data)
+    console.log('read firebase: ',data)
     var sender = data.sender;
     if (sender !== id) {
       if (msg.ice !== undefined) {
