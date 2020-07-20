@@ -148,6 +148,7 @@ const App = () => {
   const [isShowRandomBtn, setIsShowRandomBtn] = useState(true)
 
   const handleConnection = (e) => {
+    console.log('-- event candidate: ', e)
     if(e.candidate)
       sendMessage(JSON.stringify({'ice': e.candidate}))
     else 
@@ -226,7 +227,7 @@ const App = () => {
     var sender = data.sender;
     if (sender !== id) {
       if (msg.ice !== undefined) {
-        console.log('add ice candidate')
+        console.log('-- add ice candidate')
         localPeerConnection.addIceCandidate(new RTCIceCandidate(msg.ice));
       }
       else if (msg.sdp.type === "offer") {
@@ -260,15 +261,14 @@ const App = () => {
   const startAction = async () => {
     setIsShowStartBtn(false)
     setIsShowRandomBtn(false)
+    showMyFace()
     if(!inputRoomId) return
     let rID = inputRoomId.value
     let isExisted = await checkExistedRoomId(rID)
     if(!isExisted){
       createRoom(rID)
-      watchFirebaseChange(rID)
     }
     else{
-      watchFirebaseChange(rID)
       roomDetail = await getDetailRoom(rID)
       roomDetail.friendId = id;
       if(roomDetail){
@@ -276,7 +276,7 @@ const App = () => {
       }
     }
     setIsStart(true)
-    showMyFace()
+    watchFirebaseChange(rID)
   }
 
   const callAction = () => {
@@ -312,7 +312,7 @@ const App = () => {
 
   const showFriendsFace = () => {
     localPeerConnection.createOffer()
-    .then(offer => localPeerConnection.setLocalDescription(offer))
+    .then(offer => localPeerConnection.setLocalDescription(offer) )
     .then(() => sendMessage(JSON.stringify({'sdp': localPeerConnection.localDescription})) );
   }
 
