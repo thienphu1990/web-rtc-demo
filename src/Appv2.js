@@ -112,7 +112,7 @@ const servers = {iceServers: [
   {'urls': 'stun:stun.l.google.com:19302'},
   {'urls': 'stun:stun.services.mozilla.com'},
 ]};
-var localPeerConnection = new RTCPeerConnection(servers);
+var localPeerConnection = null;
 
 const id = uid(10)
 
@@ -133,8 +133,7 @@ const App = () => {
     inputRoomId = document.getElementById('input-id')
   
     // event
-    localPeerConnection.addEventListener('icecandidate', handleConnection);
-    localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
+    
 
     return () => {
       hangupAction()
@@ -283,6 +282,9 @@ const App = () => {
     setIsShowStartBtn(false)
     setIsShowRandomBtn(false)
     showMyFace()
+    localPeerConnection = new RTCPeerConnection(servers);
+    localPeerConnection.addEventListener('icecandidate', handleConnection);
+    localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
     if(!inputRoomId) return
     let rID = inputRoomId.value
     let isExisted = await checkExistedRoomId(rID)
@@ -320,7 +322,6 @@ const App = () => {
     localVideo.style.width = '100%'
     localVideo.style.border = 'none'
     localVideo.srcObject = null
-    localVideo = null
 
     remoteVideo.style.zIndex = 0;
     remoteVideo.srcObject = null
