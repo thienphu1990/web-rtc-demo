@@ -399,7 +399,7 @@ const App = () => {
     console.log(event)
     console.log(event.data)
     if(!event.data) return
-    let dataRe = event.data
+    const dataRe = event.data
     let messArr = data.concat([dataRe])
     setData(messArr)
   }
@@ -412,7 +412,7 @@ const App = () => {
   }
 
   const sendData = () => {
-    const dataRe = inputSend.value;
+    const dataRe = id+ ': '+inputSend.value;
     inputSend.value = ''
     sendChannel.send(dataRe);
     let messArr = data.concat([dataRe])
@@ -512,7 +512,7 @@ const App = () => {
 
   const renderListMessage = () => {
     return data.map((mess, i) => {
-      return <p key={i}>{id}: {mess}</p>
+      return <p key={i}>{mess}</p>
     })
   }
 
