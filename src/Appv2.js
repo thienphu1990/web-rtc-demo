@@ -479,8 +479,8 @@ const App = () => {
   }
 
   const renderListMess = () => {
-    return listmess.map((mess) => {
-      return <p>{mess}</p>
+    return listmess.map((mess, i) => {
+      return <p key={i}>{mess}</p>
     })
   }
 
