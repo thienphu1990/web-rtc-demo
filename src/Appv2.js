@@ -478,6 +478,12 @@ const App = () => {
     }
   }
 
+  const renderListMess = () => {
+    return listmess.map((mess) => {
+      return <p>{mess}</p>
+    })
+  }
+
   return (
     <Bound>
       <p>Your ID: {id}</p>
@@ -510,9 +516,7 @@ const App = () => {
         <div className='mess-container'>
           <div className='chat-board'>
             {
-              listmess.map((mess) => {
-                return <p>{mess}</p>
-              })
+              renderListMess()
             }
           </div>
           <div className='inp-chat'>
