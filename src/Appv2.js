@@ -278,16 +278,12 @@ const App = () => {
     if (sender !== id) {
       if (msg.ice !== undefined) {
         console.log('-- add ice candidate')
-        console.log(msg.ice)
         localPeerConnection.addIceCandidate(new RTCIceCandidate(msg.ice));
       }
       else{
         if(msg.sdp){
           if (msg.sdp.type === "offer") {
-            // var r = confirm("Answer call?");
-            // if (r == true) {
             console.log('read message offer')
-            console.log(msg.sdp)
             localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp))
               .then(() => localPeerConnection.createAnswer())
               .then(answer => localPeerConnection.setLocalDescription(answer))
@@ -298,13 +294,9 @@ const App = () => {
               .catch(error => {
                 console.error( error);
               });
-            // } else {
-            //   alert("Rejected the call");
-            // }
           }
           else if (msg.sdp.type === "answer") {
             console.log('read message answer')
-            console.log(msg.sdp)
             localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp))
             .catch(error => {
               console.error( error);
@@ -315,13 +307,6 @@ const App = () => {
           if (msg.action === "leave room") {
             console.log('leave room')
             sendMessage(JSON.stringify({action: ''}))
-            // localVideo.style.zIndex = 1;
-            // localVideo.style.width = '100%'
-            // localVideo.style.border = 'none'
-
-            // remoteVideo.style.zIndex = 0;
-            // remoteVideo.srcObject = null
-            // remoteStream = null
             hangupAction()
           }
           else if (msg.action === "remove room") {
@@ -347,11 +332,11 @@ const App = () => {
     showMyFace()
     
     localPeerConnection = new RTCPeerConnection(servers);
-    sendChannel = localPeerConnection.createDataChannel('sendDataChannel');
-    sendChannel.onopen = onSendChannelStateChange;
-    sendChannel.onclose = onSendChannelStateChange;
+    // sendChannel = localPeerConnection.createDataChannel('sendDataChannel');
+    // sendChannel.onopen = onSendChannelStateChange;
+    // sendChannel.onclose = onSendChannelStateChange;
 
-    localPeerConnection.addEventListener('ondatachannel', receiveChannelCallback);
+    // localPeerConnection.addEventListener('ondatachannel', receiveChannelCallback);
     localPeerConnection.addEventListener('icecandidate', handleConnection);
     localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
     
