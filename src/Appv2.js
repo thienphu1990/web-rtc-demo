@@ -329,7 +329,7 @@ const App = () => {
     }
     setIsShowStartBtn(false)
     setIsShowRandomBtn(false)
-    showMyFace()
+    await showMyFace()
     
     localPeerConnection = new RTCPeerConnection(servers);
     // sendChannel = localPeerConnection.createDataChannel('sendDataChannel');
@@ -424,7 +424,7 @@ const App = () => {
     _onChangeRoomId()
   }
 
-  const showMyFace = () => {
+  const showMyFace = async () => {
     navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
     .then(stream => {
       localVideo.srcObject = stream
