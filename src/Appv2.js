@@ -138,6 +138,7 @@ let startTime = null;
 let localStream;
 let remoteStream;
 let sendChannel;
+let receiveChannel;
 
 
 let remotePeerConnection;
@@ -348,8 +349,11 @@ const App = () => {
     sendChannel = localPeerConnection.createDataChannel('sendChannel');
     sendChannel.onopen = onSendChannelStateChange;
     sendChannel.onclose = onSendChannelStateChange;
+    // sendChannel.onmessage = receiveChannelCallback;
 
-    localPeerConnection.addEventListener('datachannel', receiveChannelCallback);
+    localPeerConnection.ondatachannel = receiveChannelCallback
+    
+ 
     localPeerConnection.addEventListener('icecandidate', handleConnection);
     // localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
     localPeerConnection.addEventListener('track', gotRemoteMediaStream);
@@ -383,11 +387,28 @@ const App = () => {
   }
 
   const receiveChannelCallback = (event) => {
+    console.log(event)
+    console.log(event.channel)
+    receiveChannel = event.channel;
+    receiveChannel.onmessage = handleReceiveMessage;
+    receiveChannel.onopen = handleReceiveChannelStatusChange;
+    receiveChannel.onclose = handleReceiveChannelStatusChange;
+  }
+
+  const handleReceiveMessage = (event) => {
+    console.log(event)
     console.log(event.data)
     if(!event.data) return
     let dataRe = event.data
     let messArr = data.concat([dataRe])
     setData(messArr)
+  }
+
+  const handleReceiveChannelStatusChange = () => {
+    if (receiveChannel) {
+      console.log("Receive channel's status has changed to " +
+                  receiveChannel.readyState);
+    }
   }
 
   const sendData = () => {
