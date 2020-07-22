@@ -30,6 +30,8 @@ const Bound = styled.div`
       #local-video, #remote-video{
         width: 100%;
         border-radius: 10px;
+        top: 0; 
+        right: 0;
       }
       #local-video{
         z-index:1;
@@ -61,7 +63,12 @@ const Bound = styled.div`
           padding: 0 10px;
           margin: auto 0;
         }
-        button{
+        #btn-chat{
+          display: flex;
+          border-radius: 3px;
+          border: 1px solid #33ADFF;
+          justify-content: center;
+          align-items: center;
           width: 150px;
           height: 32px;
           margin: auto 0;
@@ -162,6 +169,11 @@ var isWatchingFirebase = false
 var listener = null;
 
 const App = () => {
+  const [isStart, setIsStart] = useState('');
+  const [isShowStartBtn, setIsShowStartBtn] = useState(false)
+  const [isShowRandomBtn, setIsShowRandomBtn] = useState(true)
+  const [data, setData] = useState([])
+
   useEffect(() => {
     localVideo = document.getElementById("local-video");
     remoteVideo = document.getElementById("remote-video");
@@ -181,10 +193,9 @@ const App = () => {
     }
   }, [])
 
-  const [isStart, setIsStart] = useState('');
-  const [isShowStartBtn, setIsShowStartBtn] = useState(false)
-  const [isShowRandomBtn, setIsShowRandomBtn] = useState(true)
-  const [listmess, setListMess] = useState(['abc','xyz'])
+  useEffect(() => {
+    console.log(data)
+  }, [data])
 
   const handleConnection = (e) => {
     console.log('-- event candidate: ', e)
@@ -200,6 +211,8 @@ const App = () => {
     localVideo.style.zIndex = 2
     localVideo.style.width = '35%'
     localVideo.style.border = '1px solid #33ADFF'
+    localVideo.style.position = 'absolute'
+    remoteVideo.style.position = 'unset'
     remoteVideo.srcObject = mediaStream
     remoteStream = mediaStream
   }
@@ -332,11 +345,11 @@ const App = () => {
     
     
     localPeerConnection = new RTCPeerConnection(servers);
-    // sendChannel = localPeerConnection.createDataChannel('sendDataChannel');
-    // sendChannel.onopen = onSendChannelStateChange;
-    // sendChannel.onclose = onSendChannelStateChange;
+    sendChannel = localPeerConnection.createDataChannel('sendDataChannel');
+    sendChannel.onopen = onSendChannelStateChange;
+    sendChannel.onclose = onSendChannelStateChange;
 
-    // localPeerConnection.addEventListener('ondatachannel', receiveChannelCallback);
+    localPeerConnection.addEventListener('ondatachannel', receiveChannelCallback);
     localPeerConnection.addEventListener('icecandidate', handleConnection);
     // localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
     localPeerConnection.addEventListener('track', gotRemoteMediaStream);
@@ -372,17 +385,17 @@ const App = () => {
   const receiveChannelCallback = (event) => {
     console.log(event.data)
     if(!event.data) return
-    let messArr = listmess.push(event.data)
-    setListMess(messArr)
+    let dataRe = event.data
+    let messArr = data.concat([dataRe])
+    setData(messArr)
   }
 
   const sendData = () => {
-    const data = inputSend.value;
+    const dataRe = inputSend.value;
     inputSend.value = ''
-    sendChannel.send(data);
-    let messArr = listmess.push(data)
-
-    setListMess(messArr)
+    sendChannel.send(dataRe);
+    let messArr = data.concat([dataRe])
+    setData(messArr)
   }
 
   const callAction = () => {
@@ -476,9 +489,9 @@ const App = () => {
     }
   }
 
-  const renderListMess = () => {
-    console.log(listmess)
-    return listmess.map((mess, i) => {
+  const renderListMessage = () => {
+    console.log(data)
+    return data.map((mess, i) => {
       return <p key={i}>{mess}</p>
     })
   }
@@ -515,12 +528,12 @@ const App = () => {
         <div className='mess-container'>
           <div className='chat-board'>
             {
-              renderListMess()
+              renderListMessage()
             }
           </div>
           <div className='inp-chat'>
-            <input type='text' placeholder="Say something..." id='inp-chat' disabled={true}/>
-            <button onClick={() => sendData()} id='btn-chat' disabled={true} >Send</button>
+            <input type='text' placeholder="Say something..." id='inp-chat' />
+            <div onClick={() => sendData()} id='btn-chat' disabled={true} >Send</div>
           </div>
         </div>
       </div>
