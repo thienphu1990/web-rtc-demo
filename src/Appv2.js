@@ -194,8 +194,8 @@ const App = () => {
       console.log("Sent All Ice") 
   }
 
-  const gotRemoteMediaStream = (event) => {
-    const mediaStream = event.stream
+  const gotRemoteMediaStream = ({streams: [stream]}) => {
+    const mediaStream = stream
     console.log(mediaStream)
     localVideo.style.zIndex = 2
     localVideo.style.width = '35%'
@@ -329,7 +329,7 @@ const App = () => {
     }
     setIsShowStartBtn(false)
     setIsShowRandomBtn(false)
-    await showMyFace()
+    
     
     localPeerConnection = new RTCPeerConnection(servers);
     // sendChannel = localPeerConnection.createDataChannel('sendDataChannel');
@@ -338,9 +338,10 @@ const App = () => {
 
     // localPeerConnection.addEventListener('ondatachannel', receiveChannelCallback);
     localPeerConnection.addEventListener('icecandidate', handleConnection);
-    localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
-    
-    
+    // localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
+    localPeerConnection.addEventListener('track', gotRemoteMediaStream);
+    // localPeerConnection.addStream(localStream)
+    showMyFace()
     let isExisted = await checkExistedRoomId(rID)
     if(!isExisted){
       createRoom(rID)
@@ -425,15 +426,23 @@ const App = () => {
   }
 
   const showMyFace = async () => {
-    navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
-    .then(stream => {
-      localVideo.srcObject = stream
-      localStream = stream
-    })
-    .then(stream => localPeerConnection.addStream(stream))
-    .catch(error => {
-      console.error('Error accessing media devices.', error);
-    });
+    // navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
+    const gumStream = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
+    for (const track of gumStream.getTracks()) {
+      localPeerConnection.addTrack(track, gumStream);
+    }
+    getLocalStream(gumStream)
+    // .then(stream => getLocalStream(stream))
+    // .catch(error => {
+    //   console.error('Error accessing media devices.', error);
+    // });
+  }
+
+  const getLocalStream = (stream) => {
+    if(!localVideo) return
+    console.log(stream)
+    localVideo.srcObject = stream
+    localStream = stream
   }
 
   const stopCamera = () => {
