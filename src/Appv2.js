@@ -49,7 +49,7 @@ const Bound = styled.div`
       .chat-board{
         display:flex;
         flex:1;
-        justify-content: column;
+        flex-direction: column;
       }
       .inp-chat{
         display:flex;
@@ -177,14 +177,14 @@ const App = () => {
     
 
     return () => {
-      hangupAction()
+      // hangupAction()
     }
   }, [])
 
   const [isStart, setIsStart] = useState('');
   const [isShowStartBtn, setIsShowStartBtn] = useState(false)
   const [isShowRandomBtn, setIsShowRandomBtn] = useState(true)
-  const [listmess, setListMess] = useState([])
+  const [listmess, setListMess] = useState(['abc','xyz'])
 
   const handleConnection = (e) => {
     console.log('-- event candidate: ', e)
@@ -351,7 +351,7 @@ const App = () => {
     sendChannel.onopen = onSendChannelStateChange;
     sendChannel.onclose = onSendChannelStateChange;
 
-    localPeerConnection.ondatachannel = receiveChannelCallback;
+    localPeerConnection.addEventListener('ondatachannel', receiveChannelCallback);
     localPeerConnection.addEventListener('icecandidate', handleConnection);
     localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
     
@@ -375,13 +375,17 @@ const App = () => {
     const readyState = sendChannel.readyState;
     console.log('Send channel state is: ' + readyState);
     if (readyState === 'open') {
-
+      inputSend.disabled = false
+      buttonSend.disabled = false
     } else {
-
+      inputSend.disabled = true
+      buttonSend.disabled = true
     }
   }
 
   const receiveChannelCallback = (event) => {
+    console.log(event.data)
+    if(!event.data) return
     let messArr = listmess.push(event.data)
     setListMess(messArr)
   }
@@ -479,6 +483,7 @@ const App = () => {
   }
 
   const renderListMess = () => {
+    console.log(listmess)
     return listmess.map((mess, i) => {
       return <p key={i}>{mess}</p>
     })
