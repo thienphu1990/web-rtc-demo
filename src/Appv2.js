@@ -9,31 +9,67 @@ const Bound = styled.div`
   display: flex;
   width: 100%;
   height: 100%;
+  max-height: 100vh;
   flex-direction: column;
   align-items: center;
   input{
     text-align: center;
     margin: 8px 0;
   }
-  .video-container{
-    display:flex;
-    position: relative;
-    width:50%;
-    #local-video, #remote-video{
-      position: absolute;
-      top: 0; 
-      right: 0;
-      width: 100%;
-      border-radius: 10px;
+  .remote-container{
+    display:grid;
+    grid-template-columns: 1fr 40%;
+    grid-column-gap: 30px;
+    width: 100%;
+    height: fit-content;
+    justify-items:center;
+    .video-container{
+      display:flex;
+      position: relative;
+      width:100%;
+      #local-video, #remote-video{
+        width: 100%;
+        border-radius: 10px;
+      }
+      #local-video{
+        z-index:1;
+      }
+      #remote-video{
+        position: absolute;
+        top: 0; 
+        right: 0;
+        z-index: 0;
+      }
     }
-    #local-video{
-      z-index:1;
-    }
-    #remote-video{
+    .mess-container{
+      display:flex;
+      flex-direction: column;
       width: 100%;
-      z-index: 0;
+      height: 100%;
+      .chat-board{
+        display:flex;
+        flex:1;
+        justify-content: column;
+      }
+      .inp-chat{
+        display:flex;
+        flex-direction:row;
+        justify-content: space-evenly;
+        input{
+          width: 70%;
+          height:30px;
+          padding: 0 10px;
+          margin: auto 0;
+        }
+        button{
+          width: 150px;
+          height: 32px;
+          margin: auto 0;
+        }
+      }
     }
   }
+  
   .button-container{
     display: flex;
     flex-direction: row;
@@ -80,6 +116,8 @@ const offerOptions = {
 
 let localVideo;
 let remoteVideo;
+let inputSend;
+let buttonSend;
 
 let callButton;
 let startButton;
@@ -92,6 +130,7 @@ let startTime = null;
 
 let localStream;
 let remoteStream;
+let sendChannel;
 
 
 let remotePeerConnection;
@@ -126,6 +165,10 @@ const App = () => {
   useEffect(() => {
     localVideo = document.getElementById("local-video");
     remoteVideo = document.getElementById("remote-video");
+
+    inputSend = document.getElementById('inp-chat');
+    buttonSend = document.getElementById('btn-chat');
+
     startButton = document.getElementById('start')  
     // callButton = document.getElementById('call')
     randomButton = document.getElementById('random')
@@ -141,6 +184,7 @@ const App = () => {
   const [isStart, setIsStart] = useState('');
   const [isShowStartBtn, setIsShowStartBtn] = useState(false)
   const [isShowRandomBtn, setIsShowRandomBtn] = useState(true)
+  const [listmess, setListMess] = useState([])
 
   const handleConnection = (e) => {
     console.log('-- event candidate: ', e)
@@ -234,6 +278,7 @@ const App = () => {
     if (sender !== id) {
       if (msg.ice !== undefined) {
         console.log('-- add ice candidate')
+        console.log(msg.ice)
         localPeerConnection.addIceCandidate(new RTCIceCandidate(msg.ice));
       }
       else{
@@ -242,6 +287,7 @@ const App = () => {
             // var r = confirm("Answer call?");
             // if (r == true) {
             console.log('read message offer')
+            console.log(msg.sdp)
             localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp))
               .then(() => localPeerConnection.createAnswer())
               .then(answer => localPeerConnection.setLocalDescription(answer))
@@ -258,6 +304,7 @@ const App = () => {
           }
           else if (msg.sdp.type === "answer") {
             console.log('read message answer')
+            console.log(msg.sdp)
             localPeerConnection.setRemoteDescription(new RTCSessionDescription(msg.sdp))
             .catch(error => {
               console.error( error);
@@ -288,16 +335,27 @@ const App = () => {
   };
 
   const startAction = async () => {
-    setIsShowStartBtn(false)
-    setIsShowRandomBtn(false)
-    showMyFace()
-    localPeerConnection = new RTCPeerConnection(servers);
-    localPeerConnection.addEventListener('icecandidate', handleConnection);
-    localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
     inputRoomId = document.getElementById('input-id')
     if(!inputRoomId) return
     let rID = inputRoomId.value
-    console.log(rID)
+    if(!rID || rID.length === 0){
+      alert('please input roomID')
+      return
+    }
+    setIsShowStartBtn(false)
+    setIsShowRandomBtn(false)
+    showMyFace()
+    
+    localPeerConnection = new RTCPeerConnection(servers);
+    sendChannel = localPeerConnection.createDataChannel('sendDataChannel');
+    sendChannel.onopen = onSendChannelStateChange;
+    sendChannel.onclose = onSendChannelStateChange;
+
+    localPeerConnection.ondatachannel = receiveChannelCallback;
+    localPeerConnection.addEventListener('icecandidate', handleConnection);
+    localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
+    
+    
     let isExisted = await checkExistedRoomId(rID)
     if(!isExisted){
       createRoom(rID)
@@ -311,6 +369,30 @@ const App = () => {
     }
     setIsStart(true)
     watchFirebaseChange(rID)
+  }
+
+  const onSendChannelStateChange = () => {
+    const readyState = sendChannel.readyState;
+    console.log('Send channel state is: ' + readyState);
+    if (readyState === 'open') {
+
+    } else {
+
+    }
+  }
+
+  const receiveChannelCallback = (event) => {
+    let messArr = listmess.push(event.data)
+    setListMess(messArr)
+  }
+
+  const sendData = () => {
+    const data = inputSend.value;
+    inputSend.value = ''
+    sendChannel.send(data);
+    let messArr = listmess.push(data)
+
+    setListMess(messArr)
   }
 
   const callAction = () => {
@@ -334,6 +416,7 @@ const App = () => {
     localVideo.style.width = '100%'
     localVideo.style.border = 'none'
     localVideo.srcObject = null
+    stopCamera()
 
     remoteVideo.style.zIndex = 0;
     remoteVideo.srcObject = null
@@ -354,10 +437,27 @@ const App = () => {
 
   const showMyFace = () => {
     navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
-    .then(stream => localVideo.srcObject = stream)
+    .then(stream => {
+      localVideo.srcObject = stream
+      localStream = stream
+    })
     .then(stream => localPeerConnection.addStream(stream))
     .catch(error => {
       console.error('Error accessing media devices.', error);
+    });
+  }
+
+  const stopCamera = () => {
+    navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
+    .then(stream => {
+      console.log('stop camera')
+      // can also use getAudioTracks() or getVideoTracks()
+      var track = stream.getTracks().forEach((track) => track.stop())
+      // ...
+      track.stop();
+    })
+    .catch(error => {
+      console.log('getUserMedia() error', error);
     });
   }
 
@@ -400,12 +500,26 @@ const App = () => {
             <button id="start" onClick={()=>startAction()} disabled={isShowStartBtn?false:true} >Start</button>
             <button id="random" onClick={()=>randomAction()} disabled={isShowRandomBtn?false:true} >Random</button>
           </React.Fragment>
-        }
-          
+        } 
       </div>
-      <div className='video-container'>
+      <div className='remote-container' style={{visibility: isStart?'unset':'hidden'}}>
+        <div className='video-container'>
           <video id="local-video" autoPlay></video>
           <video id="remote-video" autoPlay></video>
+        </div>
+        <div className='mess-container'>
+          <div className='chat-board'>
+            {
+              listmess.map((mess) => {
+                return <p>{mess}</p>
+              })
+            }
+          </div>
+          <div className='inp-chat'>
+            <input type='text' placeholder="Say something..." id='inp-chat' disabled={true}/>
+            <button onClick={() => sendData()} id='btn-chat' disabled={true} >Send</button>
+          </div>
+        </div>
       </div>
     </Bound>
   );
