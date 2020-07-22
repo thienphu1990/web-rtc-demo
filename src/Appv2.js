@@ -168,8 +168,10 @@ var partnerId = null
 var roomDetail = null
 var isWatchingFirebase = false
 var listener = null;
+var listmess = []
 
 const App = () => {
+  console.log('----- render UI start -----')
   const [isStart, setIsStart] = useState('');
   const [isShowStartBtn, setIsShowStartBtn] = useState(false)
   const [isShowRandomBtn, setIsShowRandomBtn] = useState(true)
@@ -188,7 +190,7 @@ const App = () => {
     hangupButton = document.getElementById('hangup');
     // event
     
-
+    console.log('----- render UI success -----')
     return () => {
       // hangupAction()
     }
@@ -400,8 +402,11 @@ const App = () => {
     console.log(event.data)
     if(!event.data) return
     const dataRe = event.data
-    let messArr = data.concat([dataRe])
+    console.log(listmess)
+    let messArr = listmess.concat([dataRe])
+    console.log(messArr)
     setData(messArr)
+    listmess.push(dataRe)
   }
 
   const handleReceiveChannelStatusChange = () => {
@@ -415,8 +420,9 @@ const App = () => {
     const dataRe = id+ ': '+inputSend.value;
     inputSend.value = ''
     sendChannel.send(dataRe);
-    let messArr = data.concat([dataRe])
+    let messArr = listmess.concat([dataRe])
     setData(messArr)
+    listmess.push(dataRe)
   }
 
   const callAction = () => {
