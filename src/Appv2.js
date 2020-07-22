@@ -345,11 +345,11 @@ const App = () => {
     
     
     localPeerConnection = new RTCPeerConnection(servers);
-    sendChannel = localPeerConnection.createDataChannel('sendDataChannel');
+    sendChannel = localPeerConnection.createDataChannel('sendChannel');
     sendChannel.onopen = onSendChannelStateChange;
     sendChannel.onclose = onSendChannelStateChange;
 
-    localPeerConnection.addEventListener('ondatachannel', receiveChannelCallback);
+    localPeerConnection.addEventListener('datachannel', receiveChannelCallback);
     localPeerConnection.addEventListener('icecandidate', handleConnection);
     // localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
     localPeerConnection.addEventListener('track', gotRemoteMediaStream);
@@ -490,7 +490,6 @@ const App = () => {
   }
 
   const renderListMessage = () => {
-    console.log(data)
     return data.map((mess, i) => {
       return <p key={i}>{mess}</p>
     })
