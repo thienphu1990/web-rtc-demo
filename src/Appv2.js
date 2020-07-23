@@ -198,8 +198,8 @@ const node = 'videocall'
 var firebaseDB = fb.database();
 
 const servers = {iceServers: [
-  // {'urls': 'stun:weezi.biz:3478'},
-  {'urls': 'stun:stun.l.google.com:19302'},
+  {'urls': 'stun:weezi.biz:3478'},
+  // {'urls': 'stun:stun.l.google.com:19302'},
   // {'urls': 'stun:stun.services.mozilla.com'},
 ]};
 const options = {optional: [
