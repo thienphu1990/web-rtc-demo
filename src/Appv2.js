@@ -67,7 +67,7 @@ const Bound = styled.div`
 
         }
       }
-      .chat-control > form{
+      .chat-control{
         display:flex;
         flex-direction:row;
         justify-content: space-evenly;
@@ -374,7 +374,6 @@ const App = () => {
     sendChannel = localPeerConnection.createDataChannel('sendChannel');
     sendChannel.onopen = onSendChannelStateChange;
     sendChannel.onclose = onSendChannelStateChange;
-    // sendChannel.onmessage = receiveChannelCallback;
 
     localPeerConnection.ondatachannel = receiveChannelCallback
     
@@ -404,7 +403,7 @@ const App = () => {
     console.log('Send channel state is: ' + readyState);
     if (readyState === 'open') {
       isSendStateReady = true
-      // if(isReceiveStateReady) 
+      if(isReceiveStateReady) 
         setIsReadyChat(true)
     } else {
       isSendStateReady = false
@@ -413,14 +412,13 @@ const App = () => {
   }
 
   const receiveChannelCallback = (event) => {
-    // receiveChannel = event.channel;
-    sendChannel.onmessage = handleReceiveMessage;
-    // receiveChannel.onopen = handleReceiveChannelStatusChange;
-    // receiveChannel.onclose = handleReceiveChannelStatusChange;
+    receiveChannel = event.channel;
+    receiveChannel.onmessage = handleReceiveMessage;
+    receiveChannel.onopen = handleReceiveChannelStatusChange;
+    receiveChannel.onclose = handleReceiveChannelStatusChange;
   }
 
   const handleReceiveMessage = (event) => {
-    debugger
     if(!event.data) return
     const dataRe = event.data
     let messArr = listmess.concat([dataRe])
@@ -442,6 +440,7 @@ const App = () => {
 
   const sendData = () => {
     const dataRe = {userId: id, message: inputSend.value};
+    // const dataRe = inputSend.value;
     inputSend.value = ''
     inputSend.focus()
     sendChannel.send(dataRe);
@@ -592,11 +591,8 @@ const App = () => {
             }
           </div>
           <div className='chat-control'>
-            <form onSubmit={()=>sendData()}>
               <input type='text' placeholder="Say something..." id='inp-chat' disabled={isReadyChat?false:true} />
-              <input type='submit' value="Send" id='btn-chat' disabled={isReadyChat?false:true} />
-            </form>
-            
+              <button onClick={()=>sendData()} id='btn-chat' disabled={isReadyChat?false:true} >Send</button>
           </div>
         </div>
       </div>
