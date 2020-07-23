@@ -262,7 +262,7 @@ const App = () => {
     const peerConnection = e.target;
     if(peerConnection.iceConnectionState === 'disconnected'){
       console.log('disconnected')
-      disconnect()
+      // disconnect()
     }
   }
 
