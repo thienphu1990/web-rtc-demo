@@ -148,7 +148,8 @@ var roomDetail = {
 var storeCandidates = []
 var isWatchingFirebase = false
 var listener = null;
-localPeerConnection = new RTCPeerConnection(servers, {'optional': [{'DtlsSrtpKeyAgreement': true}]});
+localPeerConnection = new RTCPeerConnection(servers);
+let timer = null;
 // localPeerConnection = new RTCPeerConnection(config)
 
 const App = () => {
@@ -194,7 +195,12 @@ const App = () => {
                 ...roomDetail,
                 candidates: `[${strArr}]`
             }
-            sendMessage()
+            if(timer !== null) clearTimeout(timer)
+            timer = setTimeout(() => {
+              sendMessage()
+              timer = null
+            }, 1000);
+            
             // sendMessage(JSON.stringify({'ice': e.candidate}))
         }
         else 

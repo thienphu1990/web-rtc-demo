@@ -71,6 +71,7 @@ const Bound = styled.div`
           margin-bottom: 5px;
           p{
             margin: 0;
+            min-height: 18px;
           }
         }
         .friend-mess{
