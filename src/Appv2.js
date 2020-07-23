@@ -65,20 +65,20 @@ const Bound = styled.div`
           width: fit-content;
           max-width: 70%;
           padding: 12px 20px;
+          margin-bottom: 5px;
           p{
             margin: 0;
           }
         }
         .friend-mess{
           border-radius: 10px 10px 10px 3px;
-          background-color: #33ADFF;
+          background-color: #e8e7e6;
           color: #fff;
           align-self: flex-start;
         }
         .your-mess{
           border-radius: 10px 10px 3px 10px;
-          border-radius: 10px;
-          background-color: #e8e7e6;
+          background-color: #33ADFF;
           align-self: flex-end;
         }
       }
