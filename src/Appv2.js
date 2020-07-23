@@ -60,11 +60,26 @@ const Bound = styled.div`
         display:flex;
         flex:1;
         flex-direction: column;
+        .friend-mess, .your-mess{
+          display: flex;
+          width: fit-content;
+          max-width: 70%;
+          padding: 12px 20px;
+          p{
+            margin: 0;
+          }
+        }
         .friend-mess{
-
+          border-radius: 10px 10px 10px 3px;
+          background-color: #33ADFF;
+          color: #fff;
+          align-self: flex-start;
         }
         .your-mess{
-
+          border-radius: 10px 10px 3px 10px;
+          border-radius: 10px;
+          background-color: #e8e7e6;
+          align-self: flex-end;
         }
       }
       .chat-control{
@@ -231,6 +246,13 @@ const App = () => {
       console.log("Sent All Ice") 
   }
 
+  const handleConnectionChange = (e) => {
+    const peerConnection = e.target;
+    if(peerConnection.iceConnectionState === 'disconnected'){
+      disconnect()
+    }
+  }
+
   const gotRemoteMediaStream = ({streams: [stream]}) => {
     const mediaStream = stream
     console.log(mediaStream)
@@ -395,6 +417,7 @@ const App = () => {
 
     localPeerConnection.ondatachannel = receiveChannelCallback
     localPeerConnection.addEventListener('icecandidate', handleConnection);
+    localPeerConnection.addEventListener('iceconnectionstatechange', handleConnectionChange);
     localPeerConnection.addEventListener('track', gotRemoteMediaStream);
     
     showMyFace()
@@ -458,9 +481,19 @@ const App = () => {
     listmess.push(dataRec)
   }
 
-  const callAction = () => {
-    callButton.disabled = true
-    showFriendsFace()
+  const disconnect = () => {
+    closeLocalPeerConnection()
+    createLocalPeerConnection()
+
+    localVideo.style.zIndex = 1;
+    localVideo.style.width = '100%'
+    localVideo.style.border = 'none'
+
+    remoteVideo.style.zIndex = 0;
+    remoteVideo.srcObject = null
+    remoteStream = null
+
+    setIsReadyChat(false)
   }
 
   const hangupAction = () => {
