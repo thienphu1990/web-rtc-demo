@@ -219,7 +219,7 @@ const App = () => {
     hangupButton = document.getElementById('hangup');
     
     return () => {
-      // hangupAction()
+      hangupAction()
     }
   }, [])
 
@@ -369,20 +369,8 @@ const App = () => {
     setIsShowStartBtn(false)
     setIsShowRandomBtn(false)
     
+    createLocalPeerConnection()
     
-    localPeerConnection = new RTCPeerConnection(servers, options);
-    sendChannel = localPeerConnection.createDataChannel('sendChannel');
-    sendChannel.onopen = onSendChannelStateChange;
-    sendChannel.onclose = onSendChannelStateChange;
-
-    localPeerConnection.ondatachannel = receiveChannelCallback
-    
- 
-    localPeerConnection.addEventListener('icecandidate', handleConnection);
-    // localPeerConnection.addEventListener('addstream', gotRemoteMediaStream);
-    localPeerConnection.addEventListener('track', gotRemoteMediaStream);
-    // localPeerConnection.addStream(localStream)
-    showMyFace()
     let isExisted = await checkExistedRoomId(rID)
     if(!isExisted){
       createRoom(rID)
@@ -396,6 +384,26 @@ const App = () => {
     }
     setIsStart(true)
     watchFirebaseChange(rID)
+  }
+
+  const createLocalPeerConnection = () => {
+    localPeerConnection = new RTCPeerConnection(servers, options);
+
+    sendChannel = localPeerConnection.createDataChannel('sendChannel');
+    sendChannel.onopen = onSendChannelStateChange;
+    sendChannel.onclose = onSendChannelStateChange;
+
+    localPeerConnection.ondatachannel = receiveChannelCallback
+    localPeerConnection.addEventListener('icecandidate', handleConnection);
+    localPeerConnection.addEventListener('track', gotRemoteMediaStream);
+    
+    showMyFace()
+  }
+
+  const closeLocalPeerConnection = () => {
+    if(!localPeerConnection) return
+    localPeerConnection.close()
+    localPeerConnection = null;
   }
 
   const onSendChannelStateChange = () => {
@@ -420,10 +428,11 @@ const App = () => {
 
   const handleReceiveMessage = (event) => {
     if(!event.data) return
-    const dataRe = event.data
-    let messArr = listmess.concat([dataRe])
+    const dataRec = JSON.parse(event.data)
+    console.log(dataRec)
+    let messArr = listmess.concat([dataRec])
     setData(messArr)
-    listmess.push(dataRe)
+    listmess.push(dataRec)
   }
 
   const handleReceiveChannelStatusChange = () => {
@@ -439,14 +448,14 @@ const App = () => {
   }
 
   const sendData = () => {
-    const dataRe = {userId: id, message: inputSend.value};
-    // const dataRe = inputSend.value;
+    const dataRec = {userId: id, message: inputSend.value}
+    const dataSend = JSON.stringify(dataRec);
     inputSend.value = ''
     inputSend.focus()
-    sendChannel.send(dataRe);
-    let messArr = listmess.concat([dataRe])
+    sendChannel.send(dataSend);
+    let messArr = listmess.concat([dataRec])
     setData(messArr)
-    listmess.push(dataRe)
+    listmess.push(dataRec)
   }
 
   const callAction = () => {
@@ -462,14 +471,15 @@ const App = () => {
     else{
       leaveRoom(roomDetail.roomId)
     }
-    if(localPeerConnection){
-      localPeerConnection.close();
-      localPeerConnection = null;
-    }
+
+    closeLocalPeerConnection()
+    createLocalPeerConnection()
+    
     localVideo.style.zIndex = 1;
     localVideo.style.width = '100%'
     localVideo.style.border = 'none'
     localVideo.srcObject = null
+
     stopCamera()
 
     remoteVideo.style.zIndex = 0;
@@ -479,6 +489,7 @@ const App = () => {
     setIsShowStartBtn(true)
     setIsShowRandomBtn(true)
     setIsStart(false)
+    setIsReadyChat(false)
   }
 
   const randomAction = () => {
@@ -551,6 +562,12 @@ const App = () => {
     else buttonSend.disabled = false
   }
 
+  const onKeyUpMessage = (e) => {
+    if (e.keyCode === 13) {
+      sendData();
+    }
+  }
+
   return (
     <Bound>
       <p>Your ID: {id}</p>
@@ -591,7 +608,8 @@ const App = () => {
             }
           </div>
           <div className='chat-control'>
-              <input type='text' placeholder="Say something..." id='inp-chat' disabled={isReadyChat?false:true} />
+              <input type='text' placeholder="Say something..." id='inp-chat' disabled={isReadyChat?false:true} 
+                onKeyUp={()=>onKeyUpMessage()}/>
               <button onClick={()=>sendData()} id='btn-chat' disabled={isReadyChat?false:true} >Send</button>
           </div>
         </div>
