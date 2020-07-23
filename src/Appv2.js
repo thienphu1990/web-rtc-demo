@@ -261,6 +261,7 @@ const App = () => {
   const handleConnectionChange = (e) => {
     const peerConnection = e.target;
     if(peerConnection.iceConnectionState === 'disconnected'){
+      console.log('disconnected')
       disconnect()
     }
   }
