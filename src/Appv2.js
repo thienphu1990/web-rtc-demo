@@ -50,6 +50,7 @@ const Bound = styled.div`
       width: 100%;
       height: 100%;
       position: relative;
+      overflow: auto;
       #no-one{
         position: absolute;
         top: 50%;
@@ -60,6 +61,8 @@ const Bound = styled.div`
         display:flex;
         flex:1;
         flex-direction: column;
+        height: calc(480px - 34px);
+        overflow: auto;
         .friend-mess, .your-mess{
           display: flex;
           width: fit-content;
@@ -156,6 +159,7 @@ let localVideo;
 let remoteVideo;
 let inputSend;
 let buttonSend;
+let chatBoard;
 
 let callButton;
 let startButton;
@@ -225,7 +229,7 @@ const App = () => {
   useEffect(() => {
     localVideo = document.getElementById("local-video");
     remoteVideo = document.getElementById("remote-video");
-
+    chatBoard = document.getElementById("chat-board-id")
     inputSend = document.getElementById('inp-chat');
     buttonSend = document.getElementById('btn-chat');
 
@@ -238,6 +242,12 @@ const App = () => {
       hangupAction()
     }
   }, [])
+
+  useEffect(() => {
+    if(chatBoard){
+      chatBoard.scrollTo(0, chatBoard.scrollHeight)
+    }
+  }, [data])
 
   const handleConnection = (e) => {
     console.log('-- event candidate: ', e)
@@ -472,6 +482,7 @@ const App = () => {
   }
 
   const sendData = () => {
+    if(inputSend.value.length === 0 ) return
     const dataRec = {userId: id, message: inputSend.value}
     const dataSend = JSON.stringify(dataRec);
     inputSend.value = ''
@@ -636,7 +647,7 @@ const App = () => {
             !isReadyChat &&
             <h1 id='no-one'>No one to chat</h1>
           }
-          <div className='chat-board'>
+          <div className='chat-board' id='chat-board-id'>
             {
               renderListMessage()
             }
