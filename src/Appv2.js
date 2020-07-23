@@ -528,17 +528,17 @@ const App = () => {
     localVideo.style.zIndex = 1;
     localVideo.style.width = '100%'
     localVideo.style.border = 'none'
-    // localVideo.srcObject = null
+    localVideo.srcObject = null
 
-    // stopCamera()
+    stopCamera()
 
     remoteVideo.style.zIndex = 0;
     remoteVideo.srcObject = null
     remoteStream = null
     
-    // setIsShowStartBtn(true)
-    // setIsShowRandomBtn(true)
-    // setIsStart(false)
+    setIsShowStartBtn(true)
+    setIsShowRandomBtn(true)
+    setIsStart(false)
     setIsReadyChat(false)
   }
 
