@@ -18,17 +18,19 @@ const Bound = styled.div`
   }
   .remote-container{
     display:grid;
-    grid-template-columns: 1fr 40%;
+    grid-template-columns: 640px 1fr;
     grid-column-gap: 30px;
-    width: 100%;
+    width: calc(100% - 60px);
     height: fit-content;
     justify-items:center;
+    padding: 0 30px;
     .video-container{
       display:flex;
       position: relative;
       width:100%;
       #local-video, #remote-video{
-        width: 100%;
+        width: 640px;
+        height: 480px;
         border-radius: 10px;
         top: 0; 
         right: 0;
@@ -48,16 +50,29 @@ const Bound = styled.div`
       flex-direction: column;
       width: 100%;
       height: 100%;
+      position: relative;
+      #no-one{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%)
+      }
       .chat-board{
         display:flex;
         flex:1;
         flex-direction: column;
+        .friend-mess{
+
+        }
+        .your-mess{
+
+        }
       }
-      .inp-chat{
+      .chat-control > form{
         display:flex;
         flex-direction:row;
         justify-content: space-evenly;
-        input{
+        #inp-chat{
           width: 70%;
           height:30px;
           padding: 0 10px;
@@ -133,32 +148,47 @@ let randomButton;
 
 let inputRoomId;
 
-let startTime = null;
-
 let localStream;
 let remoteStream;
 let sendChannel;
 let receiveChannel;
 
+let sendStateReady = false
+let receiveStateReady = false
 
-let remotePeerConnection;
+
+// var fb = firebase.initializeApp({ 
+//   apiKey: "AIzaSyB-q7FU6fQQTOShT_UbybVUBOcXHAhTILo",
+//   authDomain: "vinpearl-2f7d4.firebaseapp.com",
+//   databaseURL: "https://vinpearl-2f7d4.firebaseio.com",
+//   projectId: "vinpearl-2f7d4",
+//   storageBucket: "vinpearl-2f7d4.appspot.com",
+//   messagingSenderId: "904958325116",
+//   appId: "1:904958325116:web:e123ec52c8eea170"
+// });
 
 var fb = firebase.initializeApp({ 
-  apiKey: "AIzaSyB-q7FU6fQQTOShT_UbybVUBOcXHAhTILo",
-  authDomain: "vinpearl-2f7d4.firebaseapp.com",
-  databaseURL: "https://vinpearl-2f7d4.firebaseio.com",
-  projectId: "vinpearl-2f7d4",
-  storageBucket: "vinpearl-2f7d4.appspot.com",
-  messagingSenderId: "904958325116",
-  appId: "1:904958325116:web:e123ec52c8eea170"
+  apiKey: "AIzaSyBmk_VinmqMiLZx_-fOwq01k37y-utj1T0",
+  authDomain: "weeio-7a3a7.firebaseapp.com",
+  databaseURL: "https://weeio-7a3a7.firebaseio.com",
+  projectId: "weeio-7a3a7",
+  storageBucket: "weeio-7a3a7.appspot.com",
+  messagingSenderId: "135073151177",
+  appId: "1:135073151177:web:61e33710ac8f29a991f518",
+  measurementId: "G-VJB5BWDP7H"
 });
-const node = 'vinhome/videocall'
+
+const node = 'videocall'
 var firebaseDB = fb.database();
 
 const servers = {iceServers: [
-  {'urls': 'stun:stun.l.google.com:19302'},
-  {'urls': 'stun:stun.services.mozilla.com'},
+  {'urls': 'stun:weezi.biz:3478'},
+  // {'urls': 'stun:stun.services.mozilla.com'},
 ]};
+const options = {optional: [
+  {'DtlsSrtpKeyAgreement': true}
+]};
+
 var localPeerConnection = null;
 
 const id = uid(10)
@@ -171,8 +201,8 @@ var listener = null;
 var listmess = []
 
 const App = () => {
-  console.log('----- render UI start -----')
-  const [isStart, setIsStart] = useState('');
+  const [isStart, setIsStart] = useState(false);
+  const [isReadyChat, setIsReadyChat] = useState(false)
   const [isShowStartBtn, setIsShowStartBtn] = useState(false)
   const [isShowRandomBtn, setIsShowRandomBtn] = useState(true)
   const [data, setData] = useState([])
@@ -188,17 +218,20 @@ const App = () => {
     // callButton = document.getElementById('call')
     randomButton = document.getElementById('random')
     hangupButton = document.getElementById('hangup');
-    // event
     
-    console.log('----- render UI success -----')
     return () => {
       // hangupAction()
     }
   }, [])
 
   useEffect(() => {
-    console.log(data)
-  }, [data])
+    if(sendStateReady && receiveStateReady){
+      setIsReadyChat(true)
+    }
+    else{
+      setIsReadyChat(false)
+    }
+  }, [sendStateReady, receiveStateReady])
 
   const handleConnection = (e) => {
     console.log('-- event candidate: ', e)
@@ -347,7 +380,7 @@ const App = () => {
     setIsShowRandomBtn(false)
     
     
-    localPeerConnection = new RTCPeerConnection(servers);
+    localPeerConnection = new RTCPeerConnection(servers, options);
     sendChannel = localPeerConnection.createDataChannel('sendChannel');
     sendChannel.onopen = onSendChannelStateChange;
     sendChannel.onclose = onSendChannelStateChange;
@@ -380,17 +413,17 @@ const App = () => {
     const readyState = sendChannel.readyState;
     console.log('Send channel state is: ' + readyState);
     if (readyState === 'open') {
-      inputSend.disabled = false
-      buttonSend.disabled = false
+      sendStateReady = true
+      // inputSend.disabled = false
+      // buttonSend.disabled = false
     } else {
-      inputSend.disabled = true
-      buttonSend.disabled = true
+      sendStateReady = false
+      // inputSend.disabled = true
+      // buttonSend.disabled = true
     }
   }
 
   const receiveChannelCallback = (event) => {
-    console.log(event)
-    console.log(event.channel)
     receiveChannel = event.channel;
     receiveChannel.onmessage = handleReceiveMessage;
     receiveChannel.onopen = handleReceiveChannelStatusChange;
@@ -398,27 +431,27 @@ const App = () => {
   }
 
   const handleReceiveMessage = (event) => {
-    console.log(event)
-    console.log(event.data)
     if(!event.data) return
     const dataRe = event.data
-    console.log(listmess)
     let messArr = listmess.concat([dataRe])
-    console.log(messArr)
     setData(messArr)
     listmess.push(dataRe)
   }
 
   const handleReceiveChannelStatusChange = () => {
-    if (receiveChannel) {
-      console.log("Receive channel's status has changed to " +
-                  receiveChannel.readyState);
+    const readyState = receiveChannel.readyState;
+    console.log('Receive channel state is: ' + readyState);
+    if (readyState === 'open') {
+      receiveStateReady = true
+    } else {
+      receiveStateReady = false
     }
   }
 
   const sendData = () => {
-    const dataRe = id+ ': '+inputSend.value;
+    const dataRe = {userId: id, message: inputSend.value};
     inputSend.value = ''
+    inputSend.focus()
     sendChannel.send(dataRe);
     let messArr = listmess.concat([dataRe])
     setData(messArr)
@@ -466,16 +499,11 @@ const App = () => {
   }
 
   const showMyFace = async () => {
-    // navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
     const gumStream = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
     for (const track of gumStream.getTracks()) {
       localPeerConnection.addTrack(track, gumStream);
     }
     getLocalStream(gumStream)
-    // .then(stream => getLocalStream(stream))
-    // .catch(error => {
-    //   console.error('Error accessing media devices.', error);
-    // });
   }
 
   const getLocalStream = (stream) => {
@@ -518,7 +546,11 @@ const App = () => {
 
   const renderListMessage = () => {
     return data.map((mess, i) => {
-      return <p key={i}>{mess}</p>
+      return (
+        <div className={mess.userId === id? 'your-mess': 'friend-mess'}>
+          <p key={i}>{mess.message}</p>
+        </div>
+      )
     })
   }
 
@@ -551,15 +583,22 @@ const App = () => {
           <video id="local-video" autoPlay></video>
           <video id="remote-video" autoPlay></video>
         </div>
-        <div className='mess-container'>
+        <div className='mess-container' style={{opacity: isReadyChat?1:0.5}}>
+          {
+            !isReadyChat &&
+            <h1 id='no-one'>No one to chat</h1>
+          }
           <div className='chat-board'>
             {
               renderListMessage()
             }
           </div>
-          <div className='inp-chat'>
-            <input type='text' placeholder="Say something..." id='inp-chat' />
-            <div onClick={() => sendData()} id='btn-chat' disabled={true} >Send</div>
+          <div className='chat-control'>
+            <form onSubmit={()=>sendData()}>
+              <input type='text' placeholder="Say something..." id='inp-chat' disabled={true}/>
+              <input type='submit' value="Send" id='btn-chat' disabled={true} />
+            </form>
+            
           </div>
         </div>
       </div>
