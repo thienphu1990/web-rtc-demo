@@ -73,12 +73,12 @@ const Bound = styled.div`
         .friend-mess{
           border-radius: 10px 10px 10px 3px;
           background-color: #e8e7e6;
-          color: #fff;
           align-self: flex-start;
         }
         .your-mess{
           border-radius: 10px 10px 3px 10px;
           background-color: #33ADFF;
+          color: #fff;
           align-self: flex-end;
         }
       }
@@ -91,6 +91,7 @@ const Bound = styled.div`
           height:30px;
           padding: 0 10px;
           margin: auto 0;
+          text-align: left;
         }
         #btn-chat{
           display: flex;
