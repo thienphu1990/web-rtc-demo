@@ -50,6 +50,7 @@ const Bound = styled.div`
       width: 100%;
       height: 100%;
       position: relative;
+      overflow: auto;
       #no-one{
         position: absolute;
         top: 50%;
@@ -60,11 +61,28 @@ const Bound = styled.div`
         display:flex;
         flex:1;
         flex-direction: column;
+        height: calc(480px - 34px);
+        overflow: auto;
+        .friend-mess, .your-mess{
+          display: flex;
+          width: fit-content;
+          max-width: 70%;
+          padding: 12px 20px;
+          margin-bottom: 5px;
+          p{
+            margin: 0;
+          }
+        }
         .friend-mess{
-
+          border-radius: 10px 10px 10px 3px;
+          background-color: #e8e7e6;
+          align-self: flex-start;
         }
         .your-mess{
-
+          border-radius: 10px 10px 3px 10px;
+          background-color: #33ADFF;
+          color: #fff;
+          align-self: flex-end;
         }
       }
       .chat-control{
@@ -76,6 +94,7 @@ const Bound = styled.div`
           height:30px;
           padding: 0 10px;
           margin: auto 0;
+          text-align: left;
         }
         #btn-chat{
           display: flex;
@@ -140,6 +159,7 @@ let localVideo;
 let remoteVideo;
 let inputSend;
 let buttonSend;
+let chatBoard;
 
 let callButton;
 let startButton;
@@ -179,6 +199,7 @@ var firebaseDB = fb.database();
 
 const servers = {iceServers: [
   {'urls': 'stun:weezi.biz:3478'},
+  // {'urls': 'stun:stun.l.google.com:19302'},
   // {'urls': 'stun:stun.services.mozilla.com'},
 ]};
 const options = {optional: [
@@ -209,7 +230,7 @@ const App = () => {
   useEffect(() => {
     localVideo = document.getElementById("local-video");
     remoteVideo = document.getElementById("remote-video");
-
+    chatBoard = document.getElementById("chat-board-id")
     inputSend = document.getElementById('inp-chat');
     buttonSend = document.getElementById('btn-chat');
 
@@ -219,9 +240,15 @@ const App = () => {
     hangupButton = document.getElementById('hangup');
     
     return () => {
-      // hangupAction()
+      hangupAction()
     }
   }, [])
+
+  useEffect(() => {
+    if(chatBoard){
+      chatBoard.scrollTo(0, chatBoard.scrollHeight)
+    }
+  }, [data])
 
   const handleConnection = (e) => {
     console.log('-- event candidate: ', e)
@@ -229,6 +256,14 @@ const App = () => {
       sendMessage(JSON.stringify({'ice': e.candidate}))
     else 
       console.log("Sent All Ice") 
+  }
+
+  const handleConnectionChange = (e) => {
+    const peerConnection = e.target;
+    if(peerConnection.iceConnectionState === 'disconnected'){
+      console.log('disconnected')
+      // disconnect()
+    }
   }
 
   const gotRemoteMediaStream = ({streams: [stream]}) => {
@@ -387,7 +422,8 @@ const App = () => {
   }
 
   const createLocalPeerConnection = () => {
-    localPeerConnection = new RTCPeerConnection(servers, options);
+    console.log('creat new rtcpeerconnection')
+    localPeerConnection = new RTCPeerConnection(servers);
 
     sendChannel = localPeerConnection.createDataChannel('sendChannel');
     sendChannel.onopen = onSendChannelStateChange;
@@ -395,12 +431,14 @@ const App = () => {
 
     localPeerConnection.ondatachannel = receiveChannelCallback
     localPeerConnection.addEventListener('icecandidate', handleConnection);
+    localPeerConnection.addEventListener('iceconnectionstatechange', handleConnectionChange);
     localPeerConnection.addEventListener('track', gotRemoteMediaStream);
     
     showMyFace()
   }
 
   const closeLocalPeerConnection = () => {
+    console.log('close new rtcpeerconnection')
     if(!localPeerConnection) return
     localPeerConnection.close()
     localPeerConnection = null;
@@ -448,6 +486,7 @@ const App = () => {
   }
 
   const sendData = () => {
+    if(inputSend.value.length === 0 ) return
     const dataRec = {userId: id, message: inputSend.value}
     const dataSend = JSON.stringify(dataRec);
     inputSend.value = ''
@@ -458,9 +497,19 @@ const App = () => {
     listmess.push(dataRec)
   }
 
-  const callAction = () => {
-    callButton.disabled = true
-    showFriendsFace()
+  const disconnect = () => {
+    closeLocalPeerConnection()
+    createLocalPeerConnection()
+
+    localVideo.style.zIndex = 1;
+    localVideo.style.width = '100%'
+    localVideo.style.border = 'none'
+
+    remoteVideo.style.zIndex = 0;
+    remoteVideo.srcObject = null
+    remoteStream = null
+
+    setIsReadyChat(false)
   }
 
   const hangupAction = () => {
@@ -562,6 +611,12 @@ const App = () => {
     else buttonSend.disabled = false
   }
 
+  const onKeyUpMessage = (e) => {
+    if (e.keyCode === 13) {
+      sendData();
+    }
+  }
+
   return (
     <Bound>
       <p>Your ID: {id}</p>
@@ -596,13 +651,14 @@ const App = () => {
             !isReadyChat &&
             <h1 id='no-one'>No one to chat</h1>
           }
-          <div className='chat-board'>
+          <div className='chat-board' id='chat-board-id'>
             {
               renderListMessage()
             }
           </div>
           <div className='chat-control'>
-              <input type='text' placeholder="Say something..." id='inp-chat' disabled={isReadyChat?false:true} />
+              <input type='text' placeholder="Say something..." id='inp-chat' disabled={isReadyChat?false:true} 
+                onKeyUp={onKeyUpMessage}/>
               <button onClick={()=>sendData()} id='btn-chat' disabled={isReadyChat?false:true} >Send</button>
           </div>
         </div>
