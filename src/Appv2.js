@@ -199,11 +199,12 @@ var listmess = []
 const App = () => {
   const [isStart, setIsStart] = useState(false);
   const [isReadyChat, setIsReadyChat] = useState(false)
-  const [isSendStateReady, setIsSendStateReady] = useState(false)
-  const [isReceiveStateReady, setIsReceiveStateReady] = useState(false)
   const [isShowStartBtn, setIsShowStartBtn] = useState(false)
   const [isShowRandomBtn, setIsShowRandomBtn] = useState(true)
   const [data, setData] = useState([])
+
+  let isSendStateReady = false
+  let isReceiveStateReady = false
 
   useEffect(() => {
     localVideo = document.getElementById("local-video");
@@ -221,15 +222,6 @@ const App = () => {
       // hangupAction()
     }
   }, [])
-
-  useEffect(() => {
-    if(isSendStateReady && isReceiveStateReady){
-      setIsReadyChat(true)
-    }
-    else{
-      setIsReadyChat(false)
-    }
-  }, [isSendStateReady, isReceiveStateReady])
 
   const handleConnection = (e) => {
     console.log('-- event candidate: ', e)
@@ -411,20 +403,24 @@ const App = () => {
     const readyState = sendChannel.readyState;
     console.log('Send channel state is: ' + readyState);
     if (readyState === 'open') {
-      setIsSendStateReady(true)
+      isSendStateReady = true
+      // if(isReceiveStateReady) 
+        setIsReadyChat(true)
     } else {
-      setIsSendStateReady(true)
+      isSendStateReady = false
+      setIsReadyChat(false)
     }
   }
 
   const receiveChannelCallback = (event) => {
-    receiveChannel = event.channel;
-    receiveChannel.onmessage = handleReceiveMessage;
-    receiveChannel.onopen = handleReceiveChannelStatusChange;
-    receiveChannel.onclose = handleReceiveChannelStatusChange;
+    // receiveChannel = event.channel;
+    sendChannel.onmessage = handleReceiveMessage;
+    // receiveChannel.onopen = handleReceiveChannelStatusChange;
+    // receiveChannel.onclose = handleReceiveChannelStatusChange;
   }
 
   const handleReceiveMessage = (event) => {
+    debugger
     if(!event.data) return
     const dataRe = event.data
     let messArr = listmess.concat([dataRe])
@@ -436,9 +432,11 @@ const App = () => {
     const readyState = receiveChannel.readyState;
     console.log('Receive channel state is: ' + readyState);
     if (readyState === 'open') {
-      setIsReceiveStateReady(true)
+      isReceiveStateReady = true
+      if(isSendStateReady) setIsReadyChat(true)
     } else {
-      setIsReceiveStateReady(false)
+      isReceiveStateReady = false
+      setIsReadyChat(false)
     }
   }
 
@@ -541,8 +539,8 @@ const App = () => {
   const renderListMessage = () => {
     return data.map((mess, i) => {
       return (
-        <div className={mess.userId === id? 'your-mess': 'friend-mess'}>
-          <p key={i}>{mess.message}</p>
+        <div key={i} className={mess.userId === id? 'your-mess': 'friend-mess'}>
+          <p>{mess.message}</p>
         </div>
       )
     })
@@ -595,8 +593,7 @@ const App = () => {
           </div>
           <div className='chat-control'>
             <form onSubmit={()=>sendData()}>
-              <input type='text' placeholder="Say something..." id='inp-chat' disabled={isReadyChat?false:true}
-                onChange={()=>onTypeMessage()}/>
+              <input type='text' placeholder="Say something..." id='inp-chat' disabled={isReadyChat?false:true} />
               <input type='submit' value="Send" id='btn-chat' disabled={isReadyChat?false:true} />
             </form>
             
