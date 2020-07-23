@@ -609,7 +609,7 @@ const App = () => {
           </div>
           <div className='chat-control'>
               <input type='text' placeholder="Say something..." id='inp-chat' disabled={isReadyChat?false:true} 
-                onKeyUp={()=>onKeyUpMessage()}/>
+                onKeyUp={onKeyUpMessage}/>
               <button onClick={()=>sendData()} id='btn-chat' disabled={isReadyChat?false:true} >Send</button>
           </div>
         </div>
