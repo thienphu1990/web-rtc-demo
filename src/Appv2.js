@@ -219,7 +219,7 @@ const App = () => {
     hangupButton = document.getElementById('hangup');
     
     return () => {
-      hangupAction()
+      // hangupAction()
     }
   }, [])
 
@@ -230,8 +230,6 @@ const App = () => {
     else 
       console.log("Sent All Ice") 
   }
-
-  const handleConnectionChange = (e) => {}
 
   const gotRemoteMediaStream = ({streams: [stream]}) => {
     const mediaStream = stream
@@ -397,7 +395,6 @@ const App = () => {
 
     localPeerConnection.ondatachannel = receiveChannelCallback
     localPeerConnection.addEventListener('icecandidate', handleConnection);
-    localPeerConnection.addEventListener('iceconnectionstatechange', handleConnectionChange);
     localPeerConnection.addEventListener('track', gotRemoteMediaStream);
     
     showMyFace()
@@ -461,19 +458,9 @@ const App = () => {
     listmess.push(dataRec)
   }
 
-  const disconnect = () => {
-    closeLocalPeerConnection()
-    createLocalPeerConnection()
-
-    localVideo.style.zIndex = 1;
-    localVideo.style.width = '100%'
-    localVideo.style.border = 'none'
-
-    remoteVideo.style.zIndex = 0;
-    remoteVideo.srcObject = null
-    remoteStream = null
-
-    setIsReadyChat(false)
+  const callAction = () => {
+    callButton.disabled = true
+    showFriendsFace()
   }
 
   const hangupAction = () => {
@@ -575,12 +562,6 @@ const App = () => {
     else buttonSend.disabled = false
   }
 
-  const onKeyUpMessage = (e) => {
-    if (e.keyCode === 13) {
-      sendData();
-    }
-  }
-
   return (
     <Bound>
       <p>Your ID: {id}</p>
@@ -621,8 +602,7 @@ const App = () => {
             }
           </div>
           <div className='chat-control'>
-              <input type='text' placeholder="Say something..." id='inp-chat' disabled={isReadyChat?false:true} 
-                onKeyUp={onKeyUpMessage}/>
+              <input type='text' placeholder="Say something..." id='inp-chat' disabled={isReadyChat?false:true} />
               <button onClick={()=>sendData()} id='btn-chat' disabled={isReadyChat?false:true} >Send</button>
           </div>
         </div>
