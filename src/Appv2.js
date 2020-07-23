@@ -21,7 +21,7 @@ const Bound = styled.div`
     grid-template-columns: 640px 1fr;
     grid-column-gap: 30px;
     width: calc(100% - 60px);
-    height: fit-content;
+    height: 480px;
     justify-items:center;
     padding: 0 30px;
     .video-container{
@@ -30,7 +30,6 @@ const Bound = styled.div`
       width:100%;
       #local-video, #remote-video{
         width: 640px;
-        height: 480px;
         border-radius: 10px;
         top: 0; 
         right: 0;
@@ -81,7 +80,8 @@ const Bound = styled.div`
         #btn-chat{
           display: flex;
           border-radius: 3px;
-          border: 1px solid #33ADFF;
+          background-color: #33ADFF;
+          color: #fff;
           justify-content: center;
           align-items: center;
           width: 150px;
@@ -153,10 +153,6 @@ let remoteStream;
 let sendChannel;
 let receiveChannel;
 
-let sendStateReady = false
-let receiveStateReady = false
-
-
 // var fb = firebase.initializeApp({ 
 //   apiKey: "AIzaSyB-q7FU6fQQTOShT_UbybVUBOcXHAhTILo",
 //   authDomain: "vinpearl-2f7d4.firebaseapp.com",
@@ -203,6 +199,8 @@ var listmess = []
 const App = () => {
   const [isStart, setIsStart] = useState(false);
   const [isReadyChat, setIsReadyChat] = useState(false)
+  const [isSendStateReady, setIsSendStateReady] = useState(false)
+  const [isReceiveStateReady, setIsReceiveStateReady] = useState(false)
   const [isShowStartBtn, setIsShowStartBtn] = useState(false)
   const [isShowRandomBtn, setIsShowRandomBtn] = useState(true)
   const [data, setData] = useState([])
@@ -225,13 +223,13 @@ const App = () => {
   }, [])
 
   useEffect(() => {
-    if(sendStateReady && receiveStateReady){
+    if(isSendStateReady && isReceiveStateReady){
       setIsReadyChat(true)
     }
     else{
       setIsReadyChat(false)
     }
-  }, [sendStateReady, receiveStateReady])
+  }, [isSendStateReady, isReceiveStateReady])
 
   const handleConnection = (e) => {
     console.log('-- event candidate: ', e)
@@ -413,13 +411,9 @@ const App = () => {
     const readyState = sendChannel.readyState;
     console.log('Send channel state is: ' + readyState);
     if (readyState === 'open') {
-      sendStateReady = true
-      // inputSend.disabled = false
-      // buttonSend.disabled = false
+      setIsSendStateReady(true)
     } else {
-      sendStateReady = false
-      // inputSend.disabled = true
-      // buttonSend.disabled = true
+      setIsSendStateReady(true)
     }
   }
 
@@ -442,9 +436,9 @@ const App = () => {
     const readyState = receiveChannel.readyState;
     console.log('Receive channel state is: ' + readyState);
     if (readyState === 'open') {
-      receiveStateReady = true
+      setIsReceiveStateReady(true)
     } else {
-      receiveStateReady = false
+      setIsReceiveStateReady(false)
     }
   }
 
@@ -554,6 +548,12 @@ const App = () => {
     })
   }
 
+  const onTypeMessage = () => {
+    let message = inputSend.value
+    if(!message || message.length > 0) buttonSend.disabled = true
+    else buttonSend.disabled = false
+  }
+
   return (
     <Bound>
       <p>Your ID: {id}</p>
@@ -595,8 +595,9 @@ const App = () => {
           </div>
           <div className='chat-control'>
             <form onSubmit={()=>sendData()}>
-              <input type='text' placeholder="Say something..." id='inp-chat' disabled={true}/>
-              <input type='submit' value="Send" id='btn-chat' disabled={true} />
+              <input type='text' placeholder="Say something..." id='inp-chat' disabled={isReadyChat?false:true}
+                onChange={()=>onTypeMessage()}/>
+              <input type='submit' value="Send" id='btn-chat' disabled={isReadyChat?false:true} />
             </form>
             
           </div>
